@@ -139,8 +139,11 @@ export function deleteExpense(id: string) {
 }
 
 /**
- * Prints the total of all expenses to the console. If there is an error
- * reading the file, an error message will be logged to the console.
+ * Prints the total of all expenses to the console. If the file does not exist,
+ * or if there is an error reading the file, an error message will be logged to
+ * the console.
+ *
+ * @param {number} [month] - The month to filter expenses by.
  */
 export function getSummary(month?: number) {
   const expenses = JSON.parse(fs.readFileSync(filePath, 'utf8'));

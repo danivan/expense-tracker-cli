@@ -1,4 +1,5 @@
 # Expense Tracker CLI
+A solution to [roadmap.sh](https://roadmap.sh/projects/expense-tracker) expense tracker project
 
 ## Overview
 

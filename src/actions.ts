@@ -122,7 +122,14 @@ export async function updateExpense({
  * reading the file, an error message will be logged to the console.
  */
 export function listExpenses() {
-  console.table(JSON.parse(fs.readFileSync(filePath, 'utf8')));
+  try {
+    console.table(JSON.parse(fs.readFileSync(filePath, 'utf8')));
+  } catch (error: NodeJS.ErrnoException | any) {
+    if (error.code !== 'ENOENT') {
+      console.error('No expense record found', error);
+      return;
+    }
+  }
 }
 
 /**

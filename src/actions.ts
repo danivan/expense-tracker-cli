@@ -13,13 +13,21 @@ const filePath = 'expenses.json';
  * @param {number} params.amount - The amount of the expense.
  * @param {string} params.description - The description of the expense.
  */
-export function addExpense({
+export async function addExpense({
   amount,
   description,
 }: {
   amount: number;
   description: string;
-}) {
+}): Promise<void> {
+  if (typeof amount !== 'number') {
+    throw new TypeError('amount must be a number');
+  }
+
+  if (typeof description !== 'string') {
+    throw new TypeError('description must be a string');
+  }
+
   const expense = {
     id: randomUUID(),
     date: new Date().toLocaleDateString(),
@@ -27,24 +35,31 @@ export function addExpense({
     description,
   };
 
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err && err.code !== 'ENOENT') {
-      console.error('Error reading the file:', err);
+  let expenses = [];
+
+  try {
+    const data = await fs.promises.readFile(filePath, 'utf8');
+    expenses = JSON.parse(data) as Array<Record<string, unknown>>;
+    expenses.push(expense);
+  } catch (err: NodeJS.ErrnoException | any) {
+    if (err.code !== 'ENOENT') {
+      console.error('Error adding expense:', err);
       return;
     }
+    expenses = [expense];
+  }
 
-    const expenses =
-      err && err.code === 'ENOENT' ? [] : JSON.parse(data || '[]');
-    expenses.push(expense);
+  try {
+    await fs.promises.writeFile(
+      filePath,
+      JSON.stringify(expenses, null, 2),
+      'utf8'
+    );
 
-    fs.writeFile(filePath, JSON.stringify(expenses, null, 2), 'utf8', (err) => {
-      if (err) {
-        console.error('Error writing to the file:', err);
-      } else {
-        console.log(`Expense added successfully (ID: ${expense.id})`);
-      }
-    });
-  });
+    console.log(`Expense added successfully (ID: ${expense.id})`);
+  } catch (error) {
+    console.error('Error adding expense:', error);
+  }
 }
 
 /**
@@ -60,7 +75,7 @@ export function addExpense({
  * @param {number} [params.amount] - The new amount of the expense.
  * @param {string} [params.description] - The new description of the expense.
  */
-export function updateExpense({
+export async function updateExpense({
   id,
   amount,
   description,
@@ -79,12 +94,8 @@ export function updateExpense({
     return;
   }
 
-  fs.readFile(filePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error reading the file:', err);
-      return;
-    }
-
+  try {
+    const data = await fs.promises.readFile(filePath, 'utf8');
     const expenses = JSON.parse(data || '[]');
     expenses.forEach(
       (expense: { id: string; amount: number; description: string }) => {
@@ -95,14 +106,15 @@ export function updateExpense({
       }
     );
 
-    fs.writeFile(filePath, JSON.stringify(expenses, null, 2), 'utf8', (err) => {
-      if (err) {
-        console.error('Error writing to the file:', err);
-      } else {
-        console.log(`Expense updated successfully (ID: ${id})`);
-      }
-    });
-  });
+    await fs.promises.writeFile(
+      filePath,
+      JSON.stringify(expenses, null, 2),
+      'utf8'
+    );
+    console.log(`Expense updated successfully (ID: ${id})`);
+  } catch (err) {
+    console.error('Error reading or writing to the file:', err);
+  }
 }
 
 /**

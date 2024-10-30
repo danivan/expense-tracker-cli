@@ -120,5 +120,17 @@ describe('actions', () => {
       expect(mockedReadFileSync).toHaveBeenCalledWith(mockFilePath, 'utf8');
       expect(console.log).toHaveBeenCalledWith('Total expenses: 100');
     });
+
+    it('should log an error if file not found', () => {
+      mockedReadFileSync.mockImplementationOnce(() => {
+        throw { code: 'ENOENT' };
+      });
+      console.table = jest.fn();
+
+      getSummary();
+
+      expect(mockedReadFileSync).toHaveBeenCalledWith(mockFilePath, 'utf8');
+      expect(console.table).not.toHaveBeenCalled();
+    });
   });
 });

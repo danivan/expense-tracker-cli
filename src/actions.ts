@@ -165,41 +165,49 @@ export function deleteExpense(id: string) {
  * @param {number} [month] - The month to filter expenses by.
  */
 export function getSummary(month?: number) {
-  const expenses = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-  const totalExpenses = expenses.reduce(
-    (total: number, expense: { amount: number; date: string }) => {
-      const expenseDate = new Date(expense.date);
-      if (
-        month &&
-        expenseDate.getMonth() !== month &&
-        expenseDate.getFullYear() !== new Date().getFullYear()
-      ) {
-        return total;
-      }
+  try {
+    const expenses = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    const totalExpenses = expenses.reduce(
+      (total: number, expense: { amount: number; date: string }) => {
+        const expenseDate = new Date(expense.date);
+        if (
+          month &&
+          expenseDate.getMonth() !== month &&
+          expenseDate.getFullYear() !== new Date().getFullYear()
+        ) {
+          return total;
+        }
 
-      return total + Number(expense.amount || 0);
-    },
-    0
-  );
+        return total + Number(expense.amount || 0);
+      },
+      0
+    );
 
-  const months = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-  ];
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
 
-  let output = `Total expenses: ${totalExpenses}`;
-  if (month) {
-    output = `Total expenses in ${months[month - 1]}: ${totalExpenses}`;
+    let output = `Total expenses: ${totalExpenses}`;
+    if (month) {
+      output = `Total expenses in ${months[month - 1]}: ${totalExpenses}`;
+    }
+    console.log(output);
+  } catch (error: NodeJS.ErrnoException | any) {
+    if (error.code === 'ENOENT') {
+      console.error('No expense record found');
+      return;
+    }
+    throw error;
   }
-  console.log(output);
 }
